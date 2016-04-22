@@ -1,0 +1,6 @@
+[package]
+name = "azion"
+version = "0.1.0"
+authors = ["Andrew Kubera <andrewkubera@gmail.com>"]
+
+[dependencies]

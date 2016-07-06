@@ -1,0 +1,11 @@
+
+### Project Style Guide ###
+
+tab_spaces = 2
+wrap_comments = false
+normalise_comments = true
+fn_brace_style = 'AlwaysNextLine'
+max_width = 120
+impl_empty_single_line = false
+fn_empty_single_line = false
+match_block_trailing_comma = true

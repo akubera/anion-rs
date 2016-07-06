@@ -3,4 +3,8 @@ name = "azion"
 version = "0.1.0"
 authors = ["Andrew Kubera <andrewkubera@gmail.com>"]
 
+[[bin]]
+path = "src/main.rs"
+name = "azion"
 [dependencies]
+pest = "0.3.2"

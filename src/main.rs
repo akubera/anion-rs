@@ -1,22 +1,39 @@
 #![recursion_limit = "80"]
+#![feature(custom_attribute)]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 
 #[macro_use]
 extern crate pest;
 use pest::prelude::*;
 
-#[derive(Debug, PartialEq)]
-pub enum AzionType {
-  // Boolean(Option<bool>),
+#[derive(Debug, PartialEq, Clone)]
+pub enum AzionValue {
   Boolean(Option<bool>),
   Integer(Option<i32>),
+  Float(Option<f64>),
 }
 
 #[allow(unreachable_code)]
 impl_rdp! {
     grammar! {
-        boolean  = { ["true"] | ["false"] | ["null.bool"] }
-        int      = { ["-"]? ~ ["0"] | ["-"]? ~ ['1'..'9'] ~ ['0'..'9']* }
-        null_int = { ["null.int"] }
+        whitespace = _{ [" "] | ["\t"] }
+        boolean = @{ ["true"] | ["false"] | ["null.bool"] }
+
+        null_float = { ["null.float"] }
+        float      = @{ (["-"] | ["+"])? ~ ["."] ~ ['0'..'9']+
+                    //  | (["-"] | ["+"])? ~ ["0."] ~ ['0'..'9']*
+                     | (["-"] | ["+"])? ~ ['1'..'9'] ~ ['0'..'9']* ~ ["."] ~ ['0'..'9']*
+                     }
+
+        null_int = @{ ["null.int"] }
+        int      = @{
+                    ["-"]? ~ ["0"]
+                    |
+                    ["-"]? ~ ['1'..'9'] ~ (["_"] ~ ['0'..'9']+ | ['0'..'9']+)*
+                    |
+                    ["-"]? ~ ['1'..'9'] ~ ['0'..'9']*
+                    }
+
 
 /*
         json = { value ~ eoi }
@@ -44,88 +61,167 @@ impl_rdp! {
 */    }
 
     process! {
-      int_value(&self) -> AzionType {
+      int_value(&self) -> AzionValue {
           // capture int token
         (&int_token: int) => {
-            let result: i32 = int_token.parse().unwrap();
-            return AzionType::Integer(Some(result));
+            let foo = int_token.replace("_", "");
+            let result: i32 = foo.parse().unwrap();
+            return AzionValue::Integer(Some(result));
         },
 
         (&null_int_token: null_int) => {
             assert_eq!(null_int_token, "null.int");
-            return AzionType::Integer(None);
+            return AzionValue::Integer(None);
         }
       }
 
-      boolean_value(&self) -> AzionType {
+      float_value(&self) -> AzionValue {
+          // capture int token
+        (&float_token: float) => {
+            let foo = float_token.replace("_", "");
+            let result = foo.parse().unwrap();
+            return AzionValue::Float(Some(result));
+        },
+
+        (&null_float_token: null_float) => {
+            assert_eq!(null_float_token, "null.float");
+            return AzionValue::Float(None);
+        }
+      }
+
+      boolean_value(&self) -> AzionValue {
           (&bool_token: boolean) => {
               let result = if bool_token != "null.bool" {
                   Some(bool_token.parse::<bool>().unwrap())
               } else {
                   None
               };
-              return AzionType::Boolean(result);
+              return AzionValue::Boolean(result);
           }
       }
     }
+}
+
+fn parse_string(a_string: &str) -> Option<AzionValue>
+{
+  let mut parser = Rdp::new(StringInput::new(a_string));
+  if parser.float() || parser.null_float() {
+    Some(parser.float_value())
+  } else if parser.int() || parser.null_int() {
+    Some(parser.int_value())
+  } else if parser.boolean() {
+    Some(parser.boolean_value())
+  } else {
+    None
+  }
+
 }
 
 
 fn main()
 {
   for s in std::env::args().skip(1) {
-    let mut parser = Rdp::new(StringInput::new(s.as_str()));
+    let azion_value = parse_string(s.as_str());
 
-    if parser.int() || parser.null_int() {
-      match parser.int_value() {
-        AzionType::Integer(Some(x)) => println!("> {} ", x),
-        AzionType::Integer(None) => println!("> NULL Integer"),
-        _ => {},
-      }
-    } else if parser.boolean() {
-      match parser.boolean_value() {
-        AzionType::Boolean(Some(x)) => println!("? {} ", x),
-        AzionType::Boolean(None) => println!("? NULL boolean"),
-        _ => {},
+    if let Some(val) = azion_value {
+      match val {
+        AzionValue::Boolean(Some(x)) => println!("Bool {}", x),
+        AzionValue::Boolean(None) => println!("Bool NULL"),
+        AzionValue::Integer(Some(x)) => println!("Int {}", x),
+        AzionValue::Integer(None) => println!("Int NULL"),
+        AzionValue::Float(Some(x)) => println!("Float {}", x),
+        AzionValue::Float(None) => println!("Float NULL"),
       }
     }
-    println!("{:?}", parser.queue());
-
-    // parser.boolean_value();
-    // match parser.boolean_value() {
-    //   AzionType::Boolean(Some(x)) => println!("Bool {}", x),
-    //   AzionType::Boolean(None) => println!("Bool NULL!"),
-    // }
-    // println!("{}", );
-    // println!(">> {}", parser.json())
-
   }
 }
 
-#[test]
-fn parsing_int_works()
-{
-  let cases = [("90", 90), ("101010", 101010), ("-42", -42)];
-  for &(s, ex) in cases.iter() {
-    let mut parser = Rdp::new(StringInput::new(s));
-    assert!(parser.int());
-    match parser.int_value() {
-      AzionType::Integer(Some(x)) => assert_eq!(x, ex),
-      _ => unreachable!(),
+macro_rules! integer_test {
+    (
+        $src:expr, $ex:expr
+    ) => {
+        #[test]
+        fn test_str_to_int_works() {
+            let mut parser = Rdp::new(StringInput::new($src));
+            let expected_value = AzionValue::Integer(Some($ex));
+            assert!(parser.int());
+            assert_eq!(expected_value, parser.int_value());
+        }
     }
-    assert!(parser.end());
-  }
 }
 
-#[test]
-fn parsing_invalid_values()
-{
-  let mut parser = Rdp::new(StringInput::new("_90"));
-
-  assert!(!parser.int());
-  // assert_eq!(parser.int_value(), Some(-90));
-  // assert!(parser.end());
+macro_rules! integer_tests {
+    (
+        $list:expr
+    ) => {
+        #[test]
+        fn test_strs_to_ints_works() {
+            for &(src, ex) in $list.iter() {
+                let mut parser = Rdp::new(StringInput::new(src));
+                let expected_value = AzionValue::Integer(Some(ex));
+                assert!(parser.int());
+                assert_eq!(expected_value, parser.int_value());
+            }
+        }
+    }
 }
+
+#[rustfmt_skip]
+integer_tests!([
+    ("42", 42),
+    ("0", 0),
+    ("-1000", -1000),
+    ("3_141_592_6", 31415926),
+    ("-101010101", -101010101),
+]);
+
+macro_rules! not_integer_tests {
+    (
+        $list:expr
+    ) => {
+        #[test]
+        fn test_strs_not_ints() {
+            for &src in $list.iter() {
+                let mut parser = Rdp::new(StringInput::new(src));
+                assert!(!parser.int());
+            }
+        }
+    }
+}
+
+#[rustfmt_skip]
+not_integer_tests!([
+    "_42",
+    "a",
+    "-_90",
+    // "3_1__41",
+]);
+
+
+macro_rules! float_tests {
+    (
+        $list:expr
+    ) => {
+        #[test]
+        fn test_strs_to_floats_works() {
+            for &(src, ex) in $list.iter() {
+                let mut parser = Rdp::new(StringInput::new(src));
+                let expected_value = AzionValue::Float(Some(ex));
+                assert!(parser.float());
+                assert_eq!(expected_value, parser.float_value());
+            }
+        }
+    }
+}
+
+#[rustfmt_skip]
+float_tests!([
+    ("1.0", 1.0)
+    // ("42.", 42.0),
+    // ("0.25", 0.25),
+    // ("+3.1415", 3.1415),
+    // ("-12.21", -12.21),
+]);
 
 // macro_rules! valid_int_test {
 // ($($name:expr, $value:expr,)*) => {
@@ -134,7 +230,7 @@ fn parsing_invalid_values()
 // let mut parser = Rdp::new(StringInput::new($name));
 //
 // assert!(parser.int());
-// assert_eq!(parser.int_value(), Some($value));
+//
 // assert!(parser.end());
 // }
 // }

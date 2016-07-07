@@ -15,24 +15,49 @@ pub enum AzionValue {
 
 #[allow(unreachable_code)]
 impl_rdp! {
-    grammar! {
-        whitespace = _{ [" "] | ["\t"] }
-        boolean = @{ ["true"] | ["false"] | ["null.bool"] }
+  grammar! {
 
-        null_float = { ["null.float"] }
-        float      = @{ (["-"] | ["+"])? ~ ["."] ~ ['0'..'9']+
-                    //  | (["-"] | ["+"])? ~ ["0."] ~ ['0'..'9']*
-                     | (["-"] | ["+"])? ~ ['1'..'9'] ~ ['0'..'9']* ~ ["."] ~ ['0'..'9']*
-                     }
+    whitespace = _{ [" "] | ["\t"] }
 
-        null_int = @{ ["null.int"] }
-        int      = @{
-                    ["-"]? ~ ["0"]
-                    |
-                    ["-"]? ~ ['1'..'9'] ~ (["_"] ~ ['0'..'9']+ | ['0'..'9']+)*
-                    |
-                    ["-"]? ~ ['1'..'9'] ~ ['0'..'9']*
-                    }
+    plus_or_minus = {["-"] | ["+"]}
+    digit = {['0'..'9']}
+    digits = { digit+ }
+    nz_digit = {['1'..'9']}
+
+    // literal boolean values
+    boolean = { ["true"] | ["false"] | ["null.bool"] }
+
+    // null float value
+    null_float = { ["null.float"] }
+
+    float = @{
+          plus_or_minus? // all floats may start with optional '+' or '-'
+          ~(
+              // non-zero followed by optional digits, non-optional
+              // decimal point, and more optional digits
+              nz_digit ~ digit* ~ ["."] ~ digit*
+
+              // decimal followed by digits
+           |  ["."] ~ digits
+
+              // zero and decimal, followed by optional digits
+           |  ["0."] ~ digit*
+           )
+          }
+
+    null_int = @{ ["null.int"] }
+    int = @{
+        ["-"]? // ints may start with optional minus
+        ~(
+            // non-zero digit, followed by multiple digits
+            //  - optional single underscores may split digits
+            nz_digit ~ (["_"] ~ digits | digits)*
+
+            // single zero
+            // - force no decimal afterwards for help lexing floats
+         |  ["0"] ~ !["."]
+       )
+      }
 
 
 /*
@@ -216,11 +241,17 @@ macro_rules! float_tests {
 
 #[rustfmt_skip]
 float_tests!([
-    ("1.0", 1.0)
-    // ("42.", 42.0),
-    // ("0.25", 0.25),
-    // ("+3.1415", 3.1415),
-    // ("-12.21", -12.21),
+    ("1.0", 1.0),
+    ("0.", 0.0),
+    ("0.0", 0.0),
+    (".0", 0.0),
+    ("-.0", 0.0),
+    ("+.0", 0.0),
+    (".012", 0.012),
+    ("42.", 42.0),
+    ("0.25", 0.25),
+    ("+3.1415", 3.1415),
+    ("-12.21", -12.21),
 ]);
 
 // macro_rules! valid_int_test {

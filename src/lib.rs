@@ -2,7 +2,7 @@
 //!
 //! There you go
 
-#![recursion_limit = "80"]
+#![recursion_limit = "90"]
 #![feature(custom_attribute)]
 #![allow(unreachable_code)]
 

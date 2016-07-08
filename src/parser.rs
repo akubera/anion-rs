@@ -13,6 +13,9 @@ impl_rdp! {
 
     plus_or_minus = {["-"] | ["+"]}
     digit = {['0'..'9']}
+    bin_digit = {["0"] | ["1"]}
+    oct_digit = {['0'..'7']}
+    hex_digit = {['0'..'9'] | ['a'..'f'] | ['A'..'F']}
     digits = { digit+ }
     nz_digit = {['1'..'9']}
 
@@ -46,11 +49,12 @@ impl_rdp! {
             nz_digit ~ (["_"] ~ digits | digits)*
 
             // single zero
-            // - force no decimal afterwards for help lexing floats
-         |  ["0"] ~ !["."]
+         |  ["0"]
          )
         }
-
+    hex_int = @{ ["0x"] ~ (["_"] ~ hex_digit | hex_digit)+ }
+    oct_int = @{ ["0o"] ~ (["_"] ~ oct_digit | oct_digit)+ }
+    bin_int = @{ ["0b"] ~ (["_"] ~ bin_digit | bin_digit)+ }
 
 /*
         json = { value ~ eoi }
@@ -79,10 +83,29 @@ impl_rdp! {
 
     process! {
       int_value(&self) -> AzionValue {
+
+        (&hex: hex_int) => {
+            let int_str = hex.replace("_", "");
+            let result = i32::from_str_radix(&int_str[2..], 16).unwrap();
+            return AzionValue::Integer(Some(result));
+        },
+
+        (&oct: oct_int) => {
+            let int_str = oct.replace("_", "");
+            let result = i32::from_str_radix(&int_str[2..], 8).unwrap();
+            return AzionValue::Integer(Some(result));
+        },
+
+        (&binary: bin_int) => {
+            let int_str = binary.replace("_", "");
+            let result = i32::from_str_radix(&int_str[2..], 2).unwrap();
+            return AzionValue::Integer(Some(result));
+        },
+
           // capture int token
         (&int_token: int) => {
-            let foo = int_token.replace("_", "");
-            let result: i32 = foo.parse().unwrap();
+            let int_str = int_token.replace("_", "");
+            let result: i32 = int_str.parse().unwrap();
             return AzionValue::Integer(Some(result));
         },
 
@@ -124,7 +147,7 @@ pub fn parse_string(a_string: &str) -> Option<AzionValue>
   let mut parser = Rdp::new(StringInput::new(a_string));
   if parser.float() || parser.null_float() {
     Some(parser.float_value())
-  } else if parser.int() || parser.null_int() {
+  } else if parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int() || parser.null_int() {
     Some(parser.int_value())
   } else if parser.boolean() {
     Some(parser.boolean_value())
@@ -157,8 +180,8 @@ macro_rules! integer_tests {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
                 let expected_value = AzionValue::Integer(Some(ex));
-                assert!(parser.int());
-                assert_eq!(expected_value, parser.int_value());
+                assert!(parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int());
+                assert_eq!(parser.int_value(), expected_value);
                 assert!(parser.end());
             }
         }
@@ -172,6 +195,13 @@ integer_tests!([
     ("-1000", -1000),
     ("3_141_592_6", 31415926),
     ("-101010101", -101010101),
+    ("0x42", 66),
+    ("0x10101", 65793),
+    ("0o42", 34),
+    ("0o1010_1", 4161),
+    ("0b10101", 21),
+    ("0b10_10", 10),
+    ("0b1101_1111_0101", 3573),
 ]);
 
 macro_rules! not_integer_tests {
@@ -209,7 +239,7 @@ macro_rules! float_tests {
                 let mut parser = Rdp::new(StringInput::new(src));
                 let expected_value = AzionValue::Float(Some(ex));
                 assert!(parser.float());
-                assert_eq!(expected_value, parser.float_value());
+                assert_eq!(parser.float_value(), expected_value);
             }
         }
     }

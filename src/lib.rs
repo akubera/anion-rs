@@ -3,12 +3,20 @@
 //! There you go
 
 #![recursion_limit = "80"]
+#![feature(custom_attribute)]
+#![allow(unreachable_code)]
 
 #[macro_use]
 extern crate pest;
-// use pest::prelude::StringInput;
-// use pest::StringInput;
 
-mod parser;
+pub mod parser;
 
-// pub use parser::AzionParser;
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum AzionValue {
+  Boolean(Option<bool>),
+  Integer(Option<i32>),
+  Float(Option<f64>),
+}
+
+pub use parser::Rdp;

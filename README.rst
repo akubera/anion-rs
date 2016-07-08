@@ -1,0 +1,37 @@
+============
+Azion (rust)
+============
+
+Azion is an implementation of Amazon's `ion data notation`_ format.
+
+
+About
+-----
+
+The standard implementation of Ion is written in `java`_.
+It might be nice to have an implementation in a runtime-less language,
+and this developer wanted to learn more `rust`_, this project was
+created thusly.
+
+The name was chosen to distinguish itself from any other uses of the
+word 'ion', as well as a unique name amongst other implementations of
+the spec (in case "specializations" arise).
+
+
+Goals
+-----
+
+To make a fast and reliable low-level library for use in other projects.
+
+
+License
+-------
+
+This project is licensed under the same license as the original Ion
+project, `Apache 2.0`_.
+
+
+.. _ion data notation: http://amznlabs.github.io/ion-docs/index.html
+.. _java: https://github.com/amznlabs/ion-java/
+.. _rust: https://rust-lang.org/
+.. _Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0

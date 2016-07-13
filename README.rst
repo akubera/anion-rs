@@ -31,7 +31,7 @@ This project is licensed under the same license as the original Ion
 project, `Apache 2.0`_.
 
 
-.. _standard implementation: http://amznlabs.github.io/ion-docs/index.html
-.. _java: https://github.com/amznlabs/ion-java/
+.. _ion data notation: http://amznlabs.github.io/ion-docs/index.html
+.. _standard implementation: https://github.com/amznlabs/ion-java/
 .. _rust: https://rust-lang.org/
 .. _Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0

@@ -31,13 +31,16 @@ impl_rdp! {
               // non-zero followed by optional digits, non-optional
               // decimal point, and more optional digits
               nz_digit ~ digit* ~ ["."] ~ digit*
-
               // decimal followed by digits
            |  ["."] ~ digits
 
               // zero and decimal, followed by optional digits
            |  ["0."] ~ digit*
            )
+          ~(
+            // Ends with optional exponential
+            ( ["e"] | ["E"] ) ~ digits
+            )?
           }
 
     null_int = @{ ["null.int"] }
@@ -52,9 +55,9 @@ impl_rdp! {
          |  ["0"]
          )
         }
-    hex_int = @{ ["0x"] ~ (["_"] ~ hex_digit | hex_digit)+ }
-    oct_int = @{ ["0o"] ~ (["_"] ~ oct_digit | oct_digit)+ }
-    bin_int = @{ ["0b"] ~ (["_"] ~ bin_digit | bin_digit)+ }
+    hex_int = @{ ["0x"] ~ hex_digit+ ~ (["_"] ~ hex_digit | hex_digit)* }
+    oct_int = @{ ["0o"] ~ oct_digit+ ~ (["_"] ~ oct_digit | oct_digit)* }
+    bin_int = @{ ["0b"] ~ bin_digit+ ~ (["_"] ~ bin_digit | bin_digit)* }
 
 /*
         json = { value ~ eoi }
@@ -102,7 +105,6 @@ impl_rdp! {
             return AzionValue::Integer(Some(result));
         },
 
-          // capture int token
         (&int_token: int) => {
             let int_str = int_token.replace("_", "");
             let result: i32 = int_str.parse().unwrap();
@@ -116,7 +118,6 @@ impl_rdp! {
       }
 
       float_value(&self) -> AzionValue {
-          // capture int token
         (&float_token: float) => {
             let foo = float_token.replace("_", "");
             let result = foo.parse().unwrap();
@@ -130,14 +131,15 @@ impl_rdp! {
       }
 
       boolean_value(&self) -> AzionValue {
-          (&bool_token: boolean) => {
-              let result = if bool_token != "null.bool" {
+        (&bool_token: boolean) => {
+            let result =
+              if bool_token != "null.bool" {
                   Some(bool_token.parse::<bool>().unwrap())
               } else {
                   None
               };
-              return AzionValue::Boolean(result);
-          }
+            return AzionValue::Boolean(result);
+        }
       }
     }
 }
@@ -212,7 +214,9 @@ macro_rules! not_integer_tests {
         fn test_strs_not_ints() {
             for &src in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                assert!(!parser.int() || !parser.end());
+                let is_int = parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int();
+                assert!(!is_int || !parser.end());
+
             }
         }
     }
@@ -226,6 +230,9 @@ not_integer_tests!([
     "3_1__41",
     "12_",
     "00",
+    "0x_42",
+    "0o900",
+    "0o190",
 ]);
 
 
@@ -240,6 +247,7 @@ macro_rules! float_tests {
                 let expected_value = AzionValue::Float(Some(ex));
                 assert!(parser.float());
                 assert_eq!(parser.float_value(), expected_value);
+                assert!(parser.end());
             }
         }
     }
@@ -258,4 +266,5 @@ float_tests!([
     ("0.25", 0.25),
     ("+3.1415", 3.1415),
     ("-12.21", -12.21),
+    ("-12.21e1", -122.1),
 ]);

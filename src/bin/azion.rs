@@ -19,6 +19,8 @@ fn main()
         AzionValue::Integer(None) => println!("Int NULL"),
         AzionValue::Float(Some(x)) => println!("Float {}", x),
         AzionValue::Float(None) => println!("Float NULL"),
+        AzionValue::String(Some(x)) => println!("String {}", x),
+        AzionValue::String(None) => println!("String NULL"),
       }
     }
   }

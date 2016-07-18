@@ -2,7 +2,7 @@
 //!
 //! There you go
 
-#![recursion_limit = "95"]
+#![recursion_limit = "197"]
 #![feature(custom_attribute)]
 #![allow(unreachable_code)]
 
@@ -17,6 +17,7 @@ pub enum AzionValue {
   Boolean(Option<bool>),
   Integer(Option<i32>),
   Float(Option<f64>),
+  String(Option<String>),
 }
 
 pub use parser::Rdp;

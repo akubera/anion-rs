@@ -19,6 +19,22 @@ impl_rdp! {
     digits = { digit+ }
     nz_digit = {['1'..'9']}
 
+    // 2,4,8-digit hexadecimal Unicode code points
+    unicode_2d_esc = @{["x"] ~ hex_digit ~ hex_digit}
+    unicode_4d_esc = @{["u"] ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit}
+    unicode_8d_esc = @{["U"] ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit
+                             ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit}
+    // backslash followed by ...
+    escape = { ["\\"] ~ ["\""] | ["\\"] | ["/"] | ["?"]
+                      | ["a"] | ["b"] | ["t"] | ["n"]  | ["f"] | ["r"] | ["v"]
+                      | unicode_2d_esc | unicode_4d_esc | unicode_8d_esc
+                      | ["NL"] // nothing character - goes away...
+                      }
+
+    // Start with double quote, then multiple escaped values or any
+    // character NOT a backslash or double quote, then end with double quote
+    string = @{ ["\""] ~ (escape | !(["\""] | ["\\"]) ~ any)* ~ ["\""] }
+
     // literal boolean values
     boolean = { ["true"] | ["false"] | ["null.bool"] }
 
@@ -85,6 +101,19 @@ impl_rdp! {
 */    }
 
     process! {
+      string_value(&self) -> AzionValue {
+        (&s: string) => {
+          let (start, stop) = (1, s.len() - 1);
+          let unescaped_string = s[start..stop].replace("\\NL", "")
+                                               .replace("\\\\", "\\")
+                                               .replace("\\n", "\n")
+                                               .replace("\\0", "\0")
+                                               .replace("\\t", "\t");
+          let result = S                       tring::from(unescaped_string);
+          return AzionValue::String(Some(result));
+        },
+      }
+
       int_value(&self) -> AzionValue {
 
         (&hex: hex_int) => {
@@ -267,4 +296,31 @@ float_tests!([
     ("+3.1415", 3.1415),
     ("-12.21", -12.21),
     ("-12.21e1", -122.1),
+]);
+
+
+
+macro_rules! string_tests {
+    (
+        $list:expr
+    ) => {
+        #[test]
+        fn test_strs_to_strs_works() {
+            for &(src, ex) in $list.iter() {
+                let mut parser = Rdp::new(StringInput::new(src));
+                let expected_value = AzionValue::String(Some(String::from(ex)));
+                assert!(parser.string());
+                assert_eq!(parser.string_value(), expected_value);
+                assert!(parser.end());
+            }
+        }
+    }
+}
+
+#[rustfmt_skip]
+string_tests!([
+  ("\"\"", ""),
+  ("\"a\"", "a"),
+  ("\"a\\NLb\"", "ab"),
+  ("\"a\\nb\"", "a\nb"),
 ]);

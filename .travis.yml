@@ -1,0 +1,12 @@
+#
+# Travis CI configuration
+#
+---
+language: rust
+
+rust:
+  - nightly
+
+
+
+

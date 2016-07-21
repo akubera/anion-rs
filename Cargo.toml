@@ -2,6 +2,13 @@
 name = "anion"
 version = "0.1.0"
 authors = ["Andrew Kubera <andrewkubera@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/akubera/anion-rs"
+documentation = "https://akubera.github.io/anion-rs/docs/anion/"
+description = """
+Interface to the Ion serialization data format (developed by Amazon).
+"""
+
 
 [dependencies]
 pest = "0.3.2"

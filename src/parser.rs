@@ -1,10 +1,10 @@
-//! Parsing code for Azion project
+//! Parsing code for Anion project
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 
 
 use pest::prelude::*;
-use super::AzionValue;
+use super::AnionValue;
 
 impl_rdp! {
   grammar! {
@@ -101,7 +101,7 @@ impl_rdp! {
 */    }
 
     process! {
-      string_value(&self) -> AzionValue {
+      string_value(&self) -> AnionValue {
         (&s: string) => {
           let (start, stop) = (1, s.len() - 1);
           let unescaped_string = s[start..stop].replace("\\NL", "")
@@ -109,57 +109,57 @@ impl_rdp! {
                                                .replace("\\n", "\n")
                                                .replace("\\0", "\0")
                                                .replace("\\t", "\t");
-          let result = S                       tring::from(unescaped_string);
-          return AzionValue::String(Some(result));
+          let result = String::from(unescaped_string);
+          return AnionValue::String(Some(result));
         },
       }
 
-      int_value(&self) -> AzionValue {
+      int_value(&self) -> AnionValue {
 
         (&hex: hex_int) => {
             let int_str = hex.replace("_", "");
             let result = i32::from_str_radix(&int_str[2..], 16).unwrap();
-            return AzionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(result));
         },
 
         (&oct: oct_int) => {
             let int_str = oct.replace("_", "");
             let result = i32::from_str_radix(&int_str[2..], 8).unwrap();
-            return AzionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(result));
         },
 
         (&binary: bin_int) => {
             let int_str = binary.replace("_", "");
             let result = i32::from_str_radix(&int_str[2..], 2).unwrap();
-            return AzionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(result));
         },
 
         (&int_token: int) => {
             let int_str = int_token.replace("_", "");
             let result: i32 = int_str.parse().unwrap();
-            return AzionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(result));
         },
 
         (_: null_int) => {
             // assert_eq!(null_int_token, "null.int");
-            return AzionValue::Integer(None);
+            return AnionValue::Integer(None);
         }
       }
 
-      float_value(&self) -> AzionValue {
+      float_value(&self) -> AnionValue {
         (&float_token: float) => {
             let foo = float_token.replace("_", "");
             let result = foo.parse().unwrap();
-            return AzionValue::Float(Some(result));
+            return AnionValue::Float(Some(result));
         },
 
         (_: null_float) => {
             // assert_eq!(null_float_token, "null.float");
-            return AzionValue::Float(None);
+            return AnionValue::Float(None);
         }
       }
 
-      boolean_value(&self) -> AzionValue {
+      boolean_value(&self) -> AnionValue {
         (&bool_token: boolean) => {
             let result =
               if bool_token != "null.bool" {
@@ -167,13 +167,13 @@ impl_rdp! {
               } else {
                   None
               };
-            return AzionValue::Boolean(result);
+            return AnionValue::Boolean(result);
         }
       }
     }
 }
 
-pub fn parse_string(a_string: &str) -> Option<AzionValue>
+pub fn parse_string(a_string: &str) -> Option<AnionValue>
 {
   let mut parser = Rdp::new(StringInput::new(a_string));
   if parser.float() || parser.null_float() {
@@ -195,7 +195,7 @@ macro_rules! integer_test {
         #[test]
         fn test_str_to_int_works() {
             let mut parser = Rdp::new(StringInput::new($src));
-            let expected_value = AzionValue::Integer(Some($ex));
+            let expected_value = AnionValue::Integer(Some($ex));
             assert!(parser.int());
             assert_eq!(expected_value, parser.int_value());
         }
@@ -210,7 +210,7 @@ macro_rules! integer_tests {
         fn test_strs_to_ints_works() {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AzionValue::Integer(Some(ex));
+                let expected_value = AnionValue::Integer(Some(ex));
                 assert!(parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int());
                 assert_eq!(parser.int_value(), expected_value);
                 assert!(parser.end());
@@ -273,7 +273,7 @@ macro_rules! float_tests {
         fn test_strs_to_floats_works() {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AzionValue::Float(Some(ex));
+                let expected_value = AnionValue::Float(Some(ex));
                 assert!(parser.float());
                 assert_eq!(parser.float_value(), expected_value);
                 assert!(parser.end());
@@ -308,7 +308,7 @@ macro_rules! string_tests {
         fn test_strs_to_strs_works() {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AzionValue::String(Some(String::from(ex)));
+                let expected_value = AnionValue::String(Some(String::from(ex)));
                 assert!(parser.string());
                 assert_eq!(parser.string_value(), expected_value);
                 assert!(parser.end());

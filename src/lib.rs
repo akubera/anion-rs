@@ -13,7 +13,7 @@ pub mod parser;
 
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum AzionValue {
+pub enum AnionValue {
   Boolean(Option<bool>),
   Integer(Option<i32>),
   Float(Option<f64>),

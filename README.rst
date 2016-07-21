@@ -1,8 +1,8 @@
 ============
-Azion (rust)
+Anion (rust)
 ============
 
-Azion is an implementation of Amazon's `ion data notation`_ format.
+Anion is an implementation of Amazon's `ion data notation`_ format.
 
 
 About
@@ -16,6 +16,9 @@ created thusly.
 The name was chosen to distinguish itself from other projects and any
 other uses of the word 'ion', as well as a unique name amongst other
 implementations of the spec (in case "specializations" arise).
+Also, an *anion* is a negatively charged ion; the anion :math:`\text{OH}^{-}`
+may bind with positive iron nulcei :math:`\text{Fe}^{3+}` and form,
+of course, rust - reminding all of us the base implementation's language.
 
 
 Goals

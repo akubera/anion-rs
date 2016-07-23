@@ -4,10 +4,10 @@ Anion (rust)
 
 Anion is an implementation of Amazon's `ion data notation`_ format.
 
-`Documentation <https://akubera.github.io/anion-rs/docs/anion/>`__
+`Documentation <https://akubera.github.io/anion-rs/docs/anion/>`_
 
-dev
-  |travis-dev|
+dev-branch
+  |travis-dev| |coveralls-dev|
 
 
 About
@@ -46,5 +46,9 @@ project, `Apache 2.0`_.
 
 
 .. |travis-dev| image:: https://travis-ci.org/akubera/anion-rs.svg?branch=dev
-                  :target: https://travis-ci.org/akubera/anion-rs
-                  :alt: Testing Report (dev branch)
+               :target: https://travis-ci.org/akubera/anion-rs
+               :alt:    Testing Report (dev branch)
+
+.. |coveralls-dev| image:: https://coveralls.io/repos/github/akubera/anion-rs/badge.svg?branch=dev
+                  :target: https://coveralls.io/github/akubera/anion-rs?branch=dev
+                  :alt:    Coverage Report (dev branch)

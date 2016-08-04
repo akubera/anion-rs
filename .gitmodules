@@ -1,0 +1,3 @@
+[submodule "ion-test-suite-data"]
+	path = ion-test-suite-data
+	url = https://github.com/amznlabs/ion-tests

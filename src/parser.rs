@@ -73,7 +73,7 @@ impl_rdp! {
         }
     hex_int = @{ ["0x"] ~ hex_digit+ ~ (["_"] ~ hex_digit | hex_digit)* }
     oct_int = @{ ["0o"] ~ oct_digit+ ~ (["_"] ~ oct_digit | oct_digit)* }
-    bin_int = @{ ["0b"] ~ bin_digit+ ~ (["_"] ~ bin_digit | bin_digit)* }
+    bin_int = @{ plus_or_minus? ~ ["0"] ~ (["b"] | ["B"]) ~ bin_digit+ ~ (["_"] ~ bin_digit | bin_digit)* }
 
 /*
         json = { value ~ eoi }
@@ -130,8 +130,16 @@ impl_rdp! {
 
         (&binary: bin_int) => {
             let int_str = binary.replace("_", "");
-            let result = i32::from_str_radix(&int_str[2..], 2).unwrap();
-            return AnionValue::Integer(Some(result));
+            let firstchar = binary.as_bytes()[0] as char;
+            let sign = if firstchar == '-' { -1 } else { 1 };
+            let offset = if firstchar == '-' || firstchar == '+' {
+              3
+            } else {
+              2
+            };
+
+            let result =  i32::from_str_radix(&int_str[offset..], 2).unwrap();
+            return AnionValue::Integer(Some(sign * result));
         },
 
         (&int_token: int) => {

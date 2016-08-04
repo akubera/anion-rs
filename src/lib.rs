@@ -58,3 +58,11 @@ pub enum NonNullAnionValue {
 }
 
 pub use parser::Rdp;
+
+
+impl From<i32> for AnionValue {
+  fn from(int: i32) -> AnionValue
+  {
+    AnionValue::Integer(Some(int))
+  }
+}

@@ -20,12 +20,11 @@ pub mod parser;
 #[derive(Debug, PartialEq, Clone)]
 pub enum AnionValue {
   /// Pure null type
-  //Null,
-
+  // Null,
   /// true, false, null.bool
   Boolean(Option<bool>),
 
-  /// Bigint values (unlimited)  
+  /// Bigint values (unlimited)
   Integer(Option<i32>),
 
   /// 64 bit floating point value
@@ -33,6 +32,29 @@ pub enum AnionValue {
 
   /// string.
   String(Option<String>),
+}
+
+/// Variant of AnionValue enum that does not permit null values.
+/// This includes the 'pure NULL' null value, though this may
+/// be removed due to naming sillyness. This is much closer in type
+/// to true JSON values.
+///
+#[derive(Debug, PartialEq, Clone)]
+pub enum NonNullAnionValue {
+  /// The NULL value - in the NonNullValue!
+  Null,
+
+  /// true, false
+  Boolean(bool),
+
+  /// Bigint values (unlimited)
+  Integer(i32),
+
+  /// 64 bit floating point value
+  Float(f64),
+
+  /// String.
+  String(String),
 }
 
 pub use parser::Rdp;

@@ -113,3 +113,21 @@ fn test_equiv_bigInts()
     }
   }
 }
+
+#[test]
+#[allow(non_snake_case)]
+fn test_equiv_intsWithUnderscores()
+{
+  let eqiv_vec = get_eqivs("intsWithUnderscores.ion");
+  for a in eqiv_vec {
+    let mut i = a.iter();
+    let f = i.next().unwrap();
+    let x = parse_value(f);
+
+    for b in i {
+      println!("{} ?= {}", b, f);
+      let y = parse_value(b);
+      assert_eq!(x, y);
+    }
+  }
+}

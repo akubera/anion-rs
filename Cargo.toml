@@ -16,4 +16,3 @@ pest = "0.3.2"
 rustfmt = {version = "0.5", optional = true}
 num-bigint = {version = "0.1.33", default-features = false}
 num-rational = {version = "0.1.32", default-features = false}
-num-traits = "*"

@@ -10,11 +10,10 @@
 extern crate pest;
 
 extern crate num_bigint;
-extern crate num_traits;
-//
-use num_bigint::{BigInt, ToBigInt};
-// use num_traits::{Zero, One};
-// use std::mem::replace;
+extern crate num_rational;
+
+use num_bigint::BigInt;
+use num_rational::Rational;
 
 
 pub mod parser;
@@ -38,6 +37,9 @@ pub enum AnionValue {
   /// 64 bit floating point value
   Float(Option<f64>),
 
+  /// Exact precision real number value
+  Decimal(Option<Rational>),
+
   /// string.
   String(Option<String>),
 }
@@ -60,6 +62,9 @@ pub enum NonNullAnionValue {
 
   /// 64 bit floating point value
   Float(f64),
+
+  /// Exact precision real number value
+  Decimal(Rational),
 
   /// String of utf8 characters
   String(String),
@@ -86,6 +91,23 @@ impl_int_conversion!(u8);
 impl_int_conversion!(u16);
 impl_int_conversion!(u32);
 impl_int_conversion!(u64);
+
+
+macro_rules! impl_float_conversion {
+  ($float_type:ident) => {
+    impl From<$float_type> for AnionValue {
+      #[inline]
+      fn from(float_val: $float_type) -> Self {
+        AnionValue::Float(Some(float_val as f64))
+      }
+    }
+  }
+}
+
+impl_float_conversion!(f32);
+impl_float_conversion!(f64);
+
+
 
 // impl From<i32> for AnionValue {
 //   fn from(int: i32) -> AnionValue

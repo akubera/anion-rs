@@ -19,6 +19,8 @@ fn main()
         AnionValue::Integer(None) => println!("Int NULL"),
         AnionValue::Float(Some(x)) => println!("Float {}", x),
         AnionValue::Float(None) => println!("Float NULL"),
+        AnionValue::Decimal(Some(x)) => println!("Decimal {}", x),
+        AnionValue::Decimal(None) => println!("Decimal NULL"),
         AnionValue::String(Some(x)) => println!("String {}", x),
         AnionValue::String(None) => println!("String NULL"),
       }

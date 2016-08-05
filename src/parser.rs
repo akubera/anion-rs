@@ -7,7 +7,6 @@ use pest::prelude::*;
 use super::AnionValue;
 
 use num_bigint::BigInt;
-use num_bigint::ToBigInt;
 
 
 impl_rdp! {
@@ -39,10 +38,22 @@ impl_rdp! {
     // character NOT a backslash or double quote, then end with double quote
     string = @{ ["\""] ~ (escape | !(["\""] | ["\\"]) ~ any)* ~ ["\""] }
 
+    //
     // literal boolean values
+    //
     boolean = { ["true"] | ["false"] | ["null.bool"] }
 
-    // null float value
+    //
+    // decimal values
+    //
+    null_decimal = { ["null.decimal"] }
+    decimal = @{
+        int ~ (["d"] | ["D"]) ~ int
+        }
+
+    //
+    // float value
+    //
     null_float = { ["null.float"] }
 
     float = @{
@@ -63,6 +74,9 @@ impl_rdp! {
             )?
           }
 
+    //
+    // integer values
+    //
     null_int = @{ ["null.int"] }
     int = @{
         ["-"]? // ints may start with optional minus

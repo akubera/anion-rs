@@ -9,6 +9,14 @@
 #[macro_use]
 extern crate pest;
 
+extern crate num_bigint;
+extern crate num_traits;
+//
+use num_bigint::{BigInt, ToBigInt};
+// use num_traits::{Zero, One};
+// use std::mem::replace;
+
+
 pub mod parser;
 
 /// Enum of all possible types of elements in an ion document.
@@ -25,7 +33,7 @@ pub enum AnionValue {
   Boolean(Option<bool>),
 
   /// Bigint values (unlimited)
-  Integer(Option<i32>),
+  Integer(Option<BigInt>),
 
   /// 64 bit floating point value
   Float(Option<f64>),
@@ -53,16 +61,35 @@ pub enum NonNullAnionValue {
   /// 64 bit floating point value
   Float(f64),
 
-  /// String.
+  /// String of utf8 characters
   String(String),
 }
 
 pub use parser::Rdp;
 
-
-impl From<i32> for AnionValue {
-  fn from(int: i32) -> AnionValue
-  {
-    AnionValue::Integer(Some(int))
+macro_rules! impl_int_conversion {
+  ($int_type:ident) => {
+    impl From<$int_type> for AnionValue {
+      #[inline]
+      fn from(int: $int_type) -> Self {
+        AnionValue::Integer(Some(BigInt::from(int)))
+      }
+    }
   }
 }
+
+impl_int_conversion!(i8);
+impl_int_conversion!(i16);
+impl_int_conversion!(i32);
+impl_int_conversion!(i64);
+impl_int_conversion!(u8);
+impl_int_conversion!(u16);
+impl_int_conversion!(u32);
+impl_int_conversion!(u64);
+
+// impl From<i32> for AnionValue {
+//   fn from(int: i32) -> AnionValue
+//   {
+//     AnionValue::Integer(Some(BigInt::from(int)))
+//   }
+// }

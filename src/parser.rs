@@ -6,6 +6,10 @@
 use pest::prelude::*;
 use super::AnionValue;
 
+use num_bigint::BigInt;
+use num_bigint::ToBigInt;
+
+
 impl_rdp! {
   grammar! {
 
@@ -119,13 +123,13 @@ impl_rdp! {
         (&hex: hex_int) => {
             let int_str = hex.replace("_", "");
             let result = i32::from_str_radix(&int_str[2..], 16).unwrap();
-            return AnionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(BigInt::from(result)));
         },
 
         (&oct: oct_int) => {
             let int_str = oct.replace("_", "");
             let result = i32::from_str_radix(&int_str[2..], 8).unwrap();
-            return AnionValue::Integer(Some(result));
+            return AnionValue::Integer(Some(BigInt::from(result)));
         },
 
         (&binary: bin_int) => {
@@ -139,13 +143,13 @@ impl_rdp! {
             };
 
             let result =  i32::from_str_radix(&int_str[offset..], 2).unwrap();
-            return AnionValue::Integer(Some(sign * result));
+            return AnionValue::Integer(Some(BigInt::from(sign * result)));
         },
 
         (&int_token: int) => {
             let int_str = int_token.replace("_", "");
             let result: i32 = int_str.parse().unwrap();
-            return AnionValue::Integer(Some(result));
+            return AnionValue::from(result);
         },
 
         (_: null_int) => {
@@ -218,9 +222,9 @@ macro_rules! integer_tests {
         fn test_strs_to_ints_works() {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AnionValue::Integer(Some(ex));
+                // let expected_value = AnionValue::Integer(Some(ex));
                 assert!(parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int());
-                assert_eq!(parser.int_value(), expected_value);
+                assert_eq!(parser.int_value(), AnionValue::from(ex));
                 assert!(parser.end());
             }
         }

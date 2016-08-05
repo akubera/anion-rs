@@ -36,7 +36,7 @@ fn binary()
     let mut parser = anion::Rdp::new(StringInput::new(line));
     assert!(parser.bin_int());
     let a_val = parser.int_value();
-    assert_eq!(a_val, AnionValue::Integer(Some(*e)));
+    assert_eq!(a_val, AnionValue::from(*e));
     match a_val {
       AnionValue::Integer(_) => (),
       _ => assert!(false),

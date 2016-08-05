@@ -89,8 +89,8 @@ impl_rdp! {
          |  ["0"]
          )
         }
-    hex_int = @{ ["0x"] ~ hex_digit+ ~ (["_"] ~ hex_digit | hex_digit)* }
-    oct_int = @{ ["0o"] ~ oct_digit+ ~ (["_"] ~ oct_digit | oct_digit)* }
+    hex_int = @{ plus_or_minus? ~ ["0"] ~ (["x"] | ["X"]) ~ hex_digit+ ~ (["_"] ~ hex_digit | hex_digit)* }
+    oct_int = @{ plus_or_minus? ~ ["0"] ~ (["o"] | ["O"]) ~ oct_digit+ ~ (["_"] ~ oct_digit | oct_digit)* }
     bin_int = @{ plus_or_minus? ~ ["0"] ~ (["b"] | ["B"]) ~ bin_digit+ ~ (["_"] ~ bin_digit | bin_digit)* }
 
 /*
@@ -135,34 +135,38 @@ impl_rdp! {
       int_value(&self) -> AnionValue {
 
         (&hex: hex_int) => {
-            let int_str = hex.replace("_", "");
-            let result = i32::from_str_radix(&int_str[2..], 16).unwrap();
-            return AnionValue::Integer(Some(BigInt::from(result)));
+          let mut data = hex.replace("_", "").into_bytes();
+
+          if data[0] != '0' as u8 {
+            data[2] = data[0];
+          }
+          let data = String::from_utf8(data).unwrap();
+          println!("~~~ {}", data);
+          let data = data.into_bytes();
+          let result = BigInt::parse_bytes(&data[2..], 16).unwrap();
+          return AnionValue::from(result);
         },
 
         (&oct: oct_int) => {
             let int_str = oct.replace("_", "");
-            let result = i32::from_str_radix(&int_str[2..], 8).unwrap();
+            let result = i64::from_str_radix(&int_str[2..], 8).unwrap();
             return AnionValue::Integer(Some(BigInt::from(result)));
         },
 
         (&binary: bin_int) => {
-            let int_str = binary.replace("_", "");
-            let firstchar = binary.as_bytes()[0] as char;
-            let sign = if firstchar == '-' { -1 } else { 1 };
-            let offset = if firstchar == '-' || firstchar == '+' {
-              3
-            } else {
-              2
-            };
+          let mut data = binary.replace("_", "").into_bytes();
 
-            let result =  i32::from_str_radix(&int_str[offset..], 2).unwrap();
-            return AnionValue::Integer(Some(BigInt::from(sign * result)));
+          if data[0] != '0' as u8 {
+            data[2] = data[0];
+          }
+
+          let result = BigInt::parse_bytes(&data[2..], 2).unwrap();
+          return AnionValue::from(result);
         },
 
         (&int_token: int) => {
             let int_str = int_token.replace("_", "");
-            let result: i32 = int_str.parse().unwrap();
+            let result = BigInt::parse_bytes(int_str.as_bytes(), 10).unwrap();
             return AnionValue::from(result);
         },
 
@@ -235,6 +239,7 @@ macro_rules! integer_tests {
         #[test]
         fn test_strs_to_ints_works() {
             for &(src, ex) in $list.iter() {
+                println!("> {}", src);
                 let mut parser = Rdp::new(StringInput::new(src));
                 // let expected_value = AnionValue::Integer(Some(ex));
                 assert!(parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int());
@@ -253,7 +258,7 @@ integer_tests!([
     ("3_141_592_6", 31415926),
     ("-101010101", -101010101),
     ("0x42", 66),
-    ("0x10101", 65793),
+    ("-0x10101", -65793),
     ("0o42", 34),
     ("0o1010_1", 4161),
     ("0b10101", 21),

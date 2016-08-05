@@ -91,6 +91,7 @@ impl_int_conversion!(u8);
 impl_int_conversion!(u16);
 impl_int_conversion!(u32);
 impl_int_conversion!(u64);
+impl_int_conversion!(BigInt);
 
 
 macro_rules! impl_float_conversion {

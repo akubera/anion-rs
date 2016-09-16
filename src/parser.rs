@@ -7,6 +7,7 @@ use pest::prelude::*;
 use super::AnionValue;
 
 use num_bigint::BigInt;
+use num_bigdecimal::BigDecimal;
 use std::str::FromStr;
 
 
@@ -190,6 +191,15 @@ impl_rdp! {
         }
       }
 
+      decimal_value(&self) -> AnionValue {
+        (&decimal_token: decimal) => {
+            let decimal_string = decimal_token.replace("d", "e").replace("D", "e");
+            println!("Decimal String: '{}'", decimal_string);
+            let result = BigDecimal::from_str(&decimal_string[..]).unwrap();
+            return AnionValue::Decimal(Some(result));
+        }
+      }
+
       boolean_value(&self) -> AnionValue {
         (&bool_token: boolean) => {
             let result =
@@ -339,6 +349,19 @@ equality_test!(
     ("-12.21", -12.21),
     ("-12.21e1", -122.1),
 ]);
+
+
+#[rustfmt_skip]
+equality_test!(
+  decimal_test,
+  AnionValue::Decimal,
+  decimal,
+  decimal_value,
+  |ex| BigDecimal::from_str(ex).unwrap(),
+  [
+    ("1d-1", "0.1"),
+  ]
+);
 
 
 #[rustfmt_skip]

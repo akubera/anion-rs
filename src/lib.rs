@@ -10,11 +10,12 @@
 extern crate pest;
 
 extern crate num_bigint;
+extern crate num_bigdecimal;
 extern crate num_rational;
 
 use num_bigint::BigInt;
+use num_bigdecimal::BigDecimal;
 use num_rational::Rational;
-
 
 pub mod parser;
 
@@ -38,7 +39,7 @@ pub enum AnionValue {
   Float(Option<f64>),
 
   /// Exact precision real number value
-  Decimal(Option<Rational>),
+  Decimal(Option<BigDecimal>),
 
   /// string.
   String(Option<String>),

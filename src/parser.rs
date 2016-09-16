@@ -7,6 +7,7 @@ use pest::prelude::*;
 use super::AnionValue;
 
 use num_bigint::BigInt;
+use std::str::FromStr;
 
 
 impl_rdp! {
@@ -295,18 +296,22 @@ not_integer_tests!([
     "0o190",
 ]);
 
-
-macro_rules! float_tests {
+macro_rules! equality_test {
     (
-        $list:expr
+      $test_name:ident,
+      $anion_type:path,
+      $value:ident,
+      $value_val:ident,
+      $convert_expr:expr,
+      $list:expr
     ) => {
         #[test]
-        fn test_strs_to_floats_works() {
+        fn $test_name() {
             for &(src, ex) in $list.iter() {
                 let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AnionValue::Float(Some(ex));
-                assert!(parser.float());
-                assert_eq!(parser.float_value(), expected_value);
+                let expected_value = $anion_type(Some($convert_expr(ex)));
+                assert!(parser.$value());
+                assert_eq!(parser.$value_val(), expected_value);
                 assert!(parser.end());
             }
         }
@@ -314,7 +319,13 @@ macro_rules! float_tests {
 }
 
 #[rustfmt_skip]
-float_tests!([
+equality_test!(
+  float_test,
+  AnionValue::Float,
+  float,
+  float_value,
+  |ex| ex,
+  [
     ("1.0", 1.0),
     ("0.", 0.0),
     ("0.0", 0.0),
@@ -330,28 +341,17 @@ float_tests!([
 ]);
 
 
-
-macro_rules! string_tests {
-    (
-        $list:expr
-    ) => {
-        #[test]
-        fn test_strs_to_strs_works() {
-            for &(src, ex) in $list.iter() {
-                let mut parser = Rdp::new(StringInput::new(src));
-                let expected_value = AnionValue::String(Some(String::from(ex)));
-                assert!(parser.string());
-                assert_eq!(parser.string_value(), expected_value);
-                assert!(parser.end());
-            }
-        }
-    }
-}
-
 #[rustfmt_skip]
-string_tests!([
+equality_test!(
+  string_test,
+  AnionValue::String,
+  string,
+  string_value,
+  |ex| String::from(ex),
+  [
   ("\"\"", ""),
   ("\"a\"", "a"),
   ("\"a\\NLb\"", "ab"),
   ("\"a\\nb\"", "a\nb"),
-]);
+  ]
+);

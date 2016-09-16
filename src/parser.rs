@@ -16,6 +16,13 @@ impl_rdp! {
 
     whitespace = _{ [" "] | ["\t"] }
 
+    // backslash followed by ...
+    escape = { ["\\"] ~ ["\""] | ["\\"] | ["/"] | ["?"]
+                      | ["a"] | ["b"] | ["t"] | ["n"]  | ["f"] | ["r"] | ["v"]
+                      | unicode_2d_esc | unicode_4d_esc | unicode_8d_esc
+                      | ["NL"] // nothing character - goes away...
+                      }
+
     plus_or_minus = {["-"] | ["+"]}
     digit = {['0'..'9']}
     bin_digit = {["0"] | ["1"]}
@@ -45,37 +52,26 @@ impl_rdp! {
            |  ["0."] ~ digit*
            )}
 
-    // backslash followed by ...
-    escape = { ["\\"] ~ ["\""] | ["\\"] | ["/"] | ["?"]
-                      | ["a"] | ["b"] | ["t"] | ["n"]  | ["f"] | ["r"] | ["v"]
-                      | unicode_2d_esc | unicode_4d_esc | unicode_8d_esc
-                      | ["NL"] // nothing character - goes away...
-                      }
-
     // Start with double quote, then multiple escaped values or any
     // character NOT a backslash or double quote, then end with double quote
     string = @{ ["\""] ~ (escape | !(["\""] | ["\\"]) ~ any)* ~ ["\""] }
 
-    //
     // literal boolean values
-    //
     boolean = { ["true"] | ["false"] | ["null.bool"] }
 
-    //
     // decimal values
     //
+    // 'bare' real number or number with 'd' exponential notation
     null_decimal = { ["null.decimal"] }
-    decimal = @{
-        int ~ (["d"] | ["D"]) ~ int
-        }
+    decimal = @{ (real_num | digits) ~ (["d"] | ["D"]) ~ plus_or_minus? ~ digits
+               | real_num
+               }
 
-    //
     // float value
     //
-    null_float = { ["null.float"] }
-
     // Real number with 'e' exponential notation
-    float = @{ (real_num | digits) ~ (( ["e"] | ["E"] ) ~ plus_or_minus? ~ digits)? }
+    null_float = { ["null.float"] }
+    float = @{ (real_num | digits) ~ ( ["e"] | ["E"] ) ~ plus_or_minus? ~ digits }
 
     //
     // integer values
@@ -96,6 +92,8 @@ impl_rdp! {
     oct_int = @{ plus_or_minus? ~ ["0"] ~ (["o"] | ["O"]) ~ oct_digit+ ~ (["_"] ~ oct_digit | oct_digit)* }
     bin_int = @{ plus_or_minus? ~ ["0"] ~ (["b"] | ["B"]) ~ bin_digit+ ~ (["_"] ~ bin_digit | bin_digit)* }
 
+    value = { boolean | int | float }
+    ion = { value ~ eoi }
 /*
         json = { value ~ eoi }
 
@@ -144,7 +142,6 @@ impl_rdp! {
             data[2] = data[0];
           }
           let data = String::from_utf8(data).unwrap();
-          println!("~~~ {}", data);
           let data = data.into_bytes();
           let result = BigInt::parse_bytes(&data[2..], 16).unwrap();
           return AnionValue::from(result);
@@ -202,6 +199,18 @@ impl_rdp! {
       }
 
       boolean_value(&self) -> AnionValue {
+        (&bool_token: boolean) => {
+            let result =
+              if bool_token != "null.bool" {
+                  Some(bool_token.parse::<bool>().unwrap())
+              } else {
+                  None
+              };
+            return AnionValue::Boolean(result);
+        }
+      }
+
+      ion_value(&self) -> AnionValue {
         (&bool_token: boolean) => {
             let result =
               if bool_token != "null.bool" {
@@ -337,18 +346,7 @@ equality_test!(
   float_value,
   |ex| ex,
   [
-    ("1.0", 1.0),
-    ("0.", 0.0),
-    ("0.0", 0.0),
-    (".0", 0.0),
-    ("-.0", 0.0),
-    ("+.0", 0.0),
-    (".012", 0.012),
-    ("42.", 42.0),
-    ("0.25", 0.25),
-    ("+3.1415", 3.1415),
-    ("-12.21", -12.21),
-    ("-12.21e1", -122.1),
+  ("-12.21e1", -122.1),
 ]);
 
 
@@ -360,6 +358,17 @@ equality_test!(
   decimal_value,
   |ex| BigDecimal::from_str(ex).unwrap(),
   [
+    ("1.0", "1.0"),
+    ("0.", "0.0"),
+    ("0.0", "0.0"),
+    (".0", "0.0"),
+    ("-.0", "0.0"),
+    ("+.0", "0.0"),
+    (".012", "0.012"),
+    ("42.", "42.0"),
+    ("0.25", "0.25"),
+    ("+3.1415", "3.1415"),
+    ("-12.21", "-12.21"),
     ("1d-1", "0.1"),
   ]
 );

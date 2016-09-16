@@ -29,6 +29,22 @@ impl_rdp! {
     unicode_4d_esc = @{["u"] ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit}
     unicode_8d_esc = @{["U"] ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit
                              ~ hex_digit ~ hex_digit ~ hex_digit ~ hex_digit}
+
+    // match number containing a decimal point
+    real_num = @{
+          plus_or_minus? // may start with optional '+' or '-'
+          ~(
+              // non-zero followed by optional digits, non-optional
+              // decimal point, and more optional digits
+              nz_digit ~ digit* ~ ["."] ~ digit*
+
+              // decimal followed by digits
+           |  ["."] ~ digits
+
+              // zero and decimal, followed by optional digits
+           |  ["0."] ~ digit*
+           )}
+
     // backslash followed by ...
     escape = { ["\\"] ~ ["\""] | ["\\"] | ["/"] | ["?"]
                       | ["a"] | ["b"] | ["t"] | ["n"]  | ["f"] | ["r"] | ["v"]
@@ -58,30 +74,15 @@ impl_rdp! {
     //
     null_float = { ["null.float"] }
 
-    float = @{
-          plus_or_minus? // all floats may start with optional '+' or '-'
-          ~(
-              // non-zero followed by optional digits, non-optional
-              // decimal point, and more optional digits
-              nz_digit ~ digit* ~ ["."] ~ digit*
-              // decimal followed by digits
-           |  ["."] ~ digits
-
-              // zero and decimal, followed by optional digits
-           |  ["0."] ~ digit*
-           )
-          ~(
-            // Ends with optional exponential
-            ( ["e"] | ["E"] ) ~ digits
-            )?
-          }
+    // Real number with 'e' exponential notation
+    float = @{ (real_num | digits) ~ (( ["e"] | ["E"] ) ~ plus_or_minus? ~ digits)? }
 
     //
     // integer values
     //
     null_int = @{ ["null.int"] }
     int = @{
-        ["-"]? // ints may start with optional minus
+        ["-"]? // ints may start with minus
         ~(
             // non-zero digit, followed by multiple digits
             //  - optional single underscores may split digits

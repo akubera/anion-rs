@@ -1,13 +1,11 @@
 extern crate anion;
 extern crate pest;
 
-use pest::prelude::*;
-use std::io::prelude::*;
-use std::io::{BufReader, Lines};
-use std::fs::File;
-use std::path::Path;
-
 use anion::AnionValue;
+use pest::prelude::*;
+
+mod common;
+use common::{get_file_lines, good_filename, get_equivs};
 
 fn parse_value(src: &String) -> AnionValue
 {
@@ -20,45 +18,6 @@ fn parse_value(src: &String) -> AnionValue
     _ => println!("  -> None"),
   }
   return int_val;
-}
-
-fn good_filename(filename: &str) -> String
-{
-  let filename = Path::new("ion-test-suite-data/iontestdata/good").join(filename);
-  return String::from(filename.to_str().unwrap());
-}
-
-fn get_file_lines(filename: String) -> Lines<BufReader<File>>
-{
-  let f = File::open(filename.as_str()).unwrap();
-  let reader = BufReader::new(f);
-  return reader.lines();
-}
-
-/// Loads
-fn get_eqivs(filename: &str) -> Vec<Vec<String>>
-{
-  let mut result = Vec::new();
-  let equiv_dir = Path::new("equivs").join(filename);
-  let fname = equiv_dir.to_str().unwrap();
-  let mut do_store = false;
-  let lines = get_file_lines(good_filename(fname));
-
-  for line in lines {
-    let x = line.unwrap();
-    if x == "(" {
-      do_store = true;
-      result.push(Vec::new());
-    } else if x == ")" {
-      do_store = false;
-    } else if x == "" {
-      continue;
-    } else if do_store {
-      result.last_mut().unwrap().push(String::from(x));
-    }
-
-  }
-  return result;
 }
 
 #[test]
@@ -88,7 +47,7 @@ fn good_binary()
 #[test]
 fn test_equiv_ints()
 {
-  let eqiv_vec = get_eqivs("ints.ion");
+  let eqiv_vec = get_equivs("ints.ion");
   for a in eqiv_vec {
     let mut i = a.iter();
     let f = i.next().unwrap();
@@ -107,7 +66,7 @@ fn test_equiv_ints()
 #[allow(non_snake_case)]
 fn test_equiv_bigInts()
 {
-  let eqiv_vec = get_eqivs("bigInts.ion");
+  let eqiv_vec = get_equivs("bigInts.ion");
   for a in eqiv_vec {
     let mut i = a.iter();
     let f = i.next().unwrap();
@@ -125,7 +84,7 @@ fn test_equiv_bigInts()
 #[allow(non_snake_case)]
 fn test_equiv_intsWithUnderscores()
 {
-  let eqiv_vec = get_eqivs("intsWithUnderscores.ion");
+  let eqiv_vec = get_equivs("intsWithUnderscores.ion");
   for a in eqiv_vec {
     let mut i = a.iter();
     let f = i.next().unwrap();

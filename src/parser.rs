@@ -29,7 +29,10 @@ impl_rdp! {
     oct_digit = {['0'..'7']}
     hex_digit = {['0'..'9'] | ['a'..'f'] | ['A'..'F']}
     digits = { digit+ }
+    // non-zero digits
     nz_digit = {['1'..'9']}
+    // digits potentially broken by underscores
+    under_digits = { ["_"] ~ digits | digits }
 
     // 2,4,8-digit hexadecimal Unicode code points
     unicode_2d_esc = @{["x"] ~ hex_digit ~ hex_digit}
@@ -43,13 +46,13 @@ impl_rdp! {
           ~(
               // non-zero followed by optional digits, non-optional
               // decimal point, and more optional digits
-              nz_digit ~ digit* ~ ["."] ~ digit*
+              nz_digit ~ under_digits* ~ ["."] ~ under_digits*
 
               // decimal followed by digits
-           |  ["."] ~ digits
+           |  ["."] ~ under_digits
 
               // zero and decimal, followed by optional digits
-           |  ["0."] ~ digit*
+           |  ["0."] ~ under_digits*
            )}
 
     // Start with double quote, then multiple escaped values or any
@@ -63,7 +66,7 @@ impl_rdp! {
     //
     // 'bare' real number or number with 'd' exponential notation
     null_decimal = { ["null.decimal"] }
-    decimal = @{ (real_num | plus_or_minus? ~ digits) ~ (["d"] | ["D"]) ~ plus_or_minus? ~ digits
+    decimal = @{ (real_num | plus_or_minus? ~ under_digits) ~ (["d"] | ["D"]) ~ plus_or_minus? ~ under_digits
                | real_num
                }
 
@@ -82,7 +85,7 @@ impl_rdp! {
         ~(
             // non-zero digit, followed by multiple digits
             //  - optional single underscores may split digits
-            nz_digit ~ (["_"] ~ digits | digits)*
+            nz_digit ~ under_digits*
 
             // single zero
          |  ["0"]

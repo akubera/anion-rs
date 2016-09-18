@@ -74,7 +74,20 @@ fn test_equiv_decimals()
 }
 
 #[test]
-// #[ignore]
+fn test_equiv_decimals_with_underscores()
+{
+  for a in get_equivs("decimalsWithUnderscores.ion") {
+    let mut i = a.iter();
+    let f = i.next().unwrap();
+    let x = parse_value(f);
+    for b in i {
+      let y = parse_value(b);
+      assert_eq!(x, y);
+    }
+  }
+}
+
+#[test]
 fn test_zero_decimals()
 {
   let eqiv_vec = get_equivs("zeroDecimals.ion");

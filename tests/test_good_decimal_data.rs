@@ -72,3 +72,23 @@ fn test_equiv_decimals()
     }
   }
 }
+
+#[test]
+// #[ignore]
+fn test_zero_decimals()
+{
+  let eqiv_vec = get_equivs("zeroDecimals.ion");
+  for a in eqiv_vec {
+    let mut i = a.iter();
+    let f = String::from(i.next().unwrap().trim_left());
+    println!("=> '{}'", f);
+    let x = parse_value(&f);
+    for b in i {
+      let b = String::from(b.trim_left());
+      println!("~> '{}'", b);
+      let y = parse_value(&b);
+      println!("{} ?= {}", f, b);
+      assert_eq!(x, y);
+    }
+  }
+}

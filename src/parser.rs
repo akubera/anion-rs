@@ -63,7 +63,7 @@ impl_rdp! {
     //
     // 'bare' real number or number with 'd' exponential notation
     null_decimal = { ["null.decimal"] }
-    decimal = @{ (real_num | digits) ~ (["d"] | ["D"]) ~ plus_or_minus? ~ digits
+    decimal = @{ (real_num | plus_or_minus? ~ digits) ~ (["d"] | ["D"]) ~ plus_or_minus? ~ digits
                | real_num
                }
 
@@ -192,9 +192,12 @@ impl_rdp! {
       decimal_value(&self) -> AnionValue {
         (&decimal_token: decimal) => {
             let decimal_string = decimal_token.replace("d", "e").replace("D", "e");
-            println!("Decimal String: '{}'", decimal_string);
             let result = BigDecimal::from_str(&decimal_string[..]).unwrap();
             return AnionValue::Decimal(Some(result));
+        },
+
+        (_: null_decimal) => {
+            return AnionValue::Decimal(None);
         }
       }
 
@@ -227,7 +230,9 @@ impl_rdp! {
 pub fn parse_string(a_string: &str) -> Option<AnionValue>
 {
   let mut parser = Rdp::new(StringInput::new(a_string));
-  if parser.float() || parser.null_float() {
+  if parser.decimal() || parser.null_decimal() {
+    Some(parser.decimal_value())
+  } else if parser.float() || parser.null_float() {
     Some(parser.float_value())
   } else if parser.hex_int() || parser.oct_int() || parser.bin_int() || parser.int() || parser.null_int() {
     Some(parser.int_value())
@@ -364,6 +369,8 @@ equality_test!(
     (".0", "0.0"),
     ("-.0", "0.0"),
     ("+.0", "0.0"),
+    ("0d0", "0.0"),
+    ("-0d0", "-0.0"),
     (".012", "0.012"),
     ("42.", "42.0"),
     ("0.25", "0.25"),

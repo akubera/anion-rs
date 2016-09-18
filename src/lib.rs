@@ -15,7 +15,7 @@ extern crate num_rational;
 
 use num_bigint::BigInt;
 use num_bigdecimal::BigDecimal;
-use num_rational::Rational;
+
 
 pub mod parser;
 
@@ -65,7 +65,7 @@ pub enum NonNullAnionValue {
   Float(f64),
 
   /// Exact precision real number value
-  Decimal(Rational),
+  Decimal(BigDecimal),
 
   /// String of utf8 characters
   String(String),
@@ -109,7 +109,12 @@ macro_rules! impl_float_conversion {
 impl_float_conversion!(f32);
 impl_float_conversion!(f64);
 
-
+impl From<bool> for AnionValue {
+  fn from(boolean: bool) -> Self
+  {
+    AnionValue::Boolean(Some(boolean))
+  }
+}
 
 // impl From<i32> for AnionValue {
 //   fn from(int: i32) -> AnionValue

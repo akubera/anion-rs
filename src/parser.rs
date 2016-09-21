@@ -194,7 +194,7 @@ impl_rdp! {
 
       decimal_value(&self) -> AnionValue {
         (&decimal_token: decimal) => {
-            let decimal_string = decimal_token.replace("d", "e").replace("D", "e");
+            let decimal_string = decimal_token.replace("d", "e").replace("D", "e").replace("_", "");
             let result = BigDecimal::from_str(&decimal_string[..]).unwrap();
             return AnionValue::Decimal(Some(result));
         },

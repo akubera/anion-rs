@@ -9,6 +9,7 @@
 
     <title>anion - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
     
@@ -47,26 +48,156 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-0' class='srclink' href='../src/anion/src/lib.rs.html#1-23' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Rust implementation of Amazon&#39;s Ion data format</p>
+               </span><a class='srclink' href='../src/anion/lib.rs.html#1-120' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Rust implementation of Amazon&#39;s <a href="https://amznlabs.github.io/ion-docs/">Ion data format</a></p>
 
-<p>There you go</p>
-</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use parser::<a class='struct' href='../anion/parser/struct.Rdp.html' title='anion::parser::Rdp'>Rdp</a>;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<p>Ion is a data format very similar to JSON, with enhancements such
+as additional types (timestamps, s-expressions, etc), typed
+null values (an unset integer would be <code>null.int</code>), and ability
+to add annotations to all values.</p>
+
+<p>This implementation is <em>very</em> alpha and subject to massive changes.
+Help and suggestions in its development would be appreciated.</p>
+
+<p>Learn more by checking out the <a href="https://amznlabs.github.io/ion-docs/spec.html">specification</a> and the
+<a href="https://github.com/amznlabs/ion-java">java implementation</a>.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class='mod' href='parser/index.html'
-                                  title='anion::parser'>parser</a></td>
-                           <td class='docblock short'>
-                                <p>Parsing code for Anion project</p>
+                                  title='mod anion::parser'>parser</a></td>
+                           <td class='docblock-short'>
+                                <p>Module containing the functions required to take text and
+interpret ion values</p>
+                           </td>
+                       </tr></table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro.ion_list.html'
+                                  title='macro anion::ion_list'>ion_list</a></td>
+                           <td class='docblock-short'>
+                                <p>Macro to easily build an <a class="type" href="type.AnionList.html">AnionList</a>; similiar to <code>vec![]</code></p>
                            </td>
                        </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class='enum' href='enum.AnionValue.html'
-                                  title='anion::AnionValue'>AnionValue</a></td>
-                           <td class='docblock short'>
-                                
+                                  title='enum anion::AnionValue'>AnionValue</a></td>
+                           <td class='docblock-short'>
+                                <p>Enum of all possible types of elements in an ion document.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Error.html'
+                                  title='enum anion::Error'>Error</a></td>
+                           <td class='docblock-short'>
+                                <p>&quot;Master&quot; Error type enumerating all possible failures when dealing
+with anion types.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.NonNullAnionValue.html'
+                                  title='enum anion::NonNullAnionValue'>NonNullAnionValue</a></td>
+                           <td class='docblock-short'>
+                                <p>Variant of AnionValue enum that does not permit null values.
+This includes the &#39;pure NULL&#39; null value, though this may
+be removed due to naming sillyness. This is much closer in type
+to true JSON values.</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.from.html'
+                                  title='fn anion::from'>from</a></td>
+                           <td class='docblock-short'>
+                                <p>Return equivalent AnionValue from some object.
+Convenience for <code>AnionValue::from(..)</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.parse.html'
+                                  title='fn anion::parse'>parse</a></td>
+                           <td class='docblock-short'>
+                                <p>Parse a string and try to create an AnionValue.
+Convenience method for <code>str::parse::&lt;AnionValue&gt;(..)</code>.</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionBlob.html'
+                                  title='type anion::AnionBlob'>AnionBlob</a></td>
+                           <td class='docblock-short'>
+                                <p>Raw binary data</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionBool.html'
+                                  title='type anion::AnionBool'>AnionBool</a></td>
+                           <td class='docblock-short'>
+                                <p>Simple boolean value - mapped directly to rust&#39;s <em>bool</em></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionDecimal.html'
+                                  title='type anion::AnionDecimal'>AnionDecimal</a></td>
+                           <td class='docblock-short'>
+                                <p>Exact decimal</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionFloat.html'
+                                  title='type anion::AnionFloat'>AnionFloat</a></td>
+                           <td class='docblock-short'>
+                                <p>64-bit floating point number</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionInt.html'
+                                  title='type anion::AnionInt'>AnionInt</a></td>
+                           <td class='docblock-short'>
+                                <p>Unbounded integer</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionList.html'
+                                  title='type anion::AnionList'>AnionList</a></td>
+                           <td class='docblock-short'>
+                                <p>List of AnionValue items</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionString.html'
+                                  title='type anion::AnionString'>AnionString</a></td>
+                           <td class='docblock-short'>
+                                <p>Unicode characters</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionStruct.html'
+                                  title='type anion::AnionStruct'>AnionStruct</a></td>
+                           <td class='docblock-short'>
+                                <p>Map of symbols to arbitrary AnionValues</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionSymbol.html'
+                                  title='type anion::AnionSymbol'>AnionSymbol</a></td>
+                           <td class='docblock-short'>
+                                <p>Unicode characters - may be used for keys and symbols (not values)</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.AnionTimestamp.html'
+                                  title='type anion::AnionTimestamp'>AnionTimestamp</a></td>
+                           <td class='docblock-short'>
+                                <p>point in time</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.Result.html'
+                                  title='type anion::Result'>Result</a></td>
+                           <td class='docblock-short'>
+                                <p>Result wrapping all possible errors in this crate</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
@@ -124,11 +255,9 @@
     <script>
         window.rootPath = "../";
         window.currentCrate = "anion";
-        window.playgroundUrl = "";
     </script>
     <script src="../jquery.js"></script>
     <script src="../main.js"></script>
-    
     <script defer src="../search-index.js"></script>
 </body>
 </html>
